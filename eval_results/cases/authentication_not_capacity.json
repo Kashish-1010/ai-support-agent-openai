@@ -1,0 +1,270 @@
+{
+  "case_id": "authentication_not_capacity",
+  "title": "INVALID_TOKEN should not trigger a concurrency change",
+  "kind": "clear_resolution",
+  "ticket_id": "INC-1045",
+  "status": "completed",
+  "run_id": "acb01c20-bb9d-422e-b099-8e6385a32491",
+  "latency_seconds": 9.501,
+  "model": "gpt-6-luna",
+  "analysis": {
+    "summary": {
+      "text": "The reported request is returning HTTP 401 INVALID_TOKEN; increasing concurrency is not supported as a fix. Current account configuration already has concurrency set to the Enterprise entitlement of 50.",
+      "source_ids": [
+        "EVAL-AUTH-001",
+        "ACC-005",
+        "KB-008"
+      ]
+    },
+    "root_cause": {
+      "text": "The observed error is authentication-related, not evidence of a concurrency limit. The evidence does not establish whether the token is expired, has an incorrect scope, or has another validity issue. A prior Atlas Labs case was resolved by rotating an expired token, but that is historical analogy, not confirmation of this incident’s cause.",
+      "source_ids": [
+        "EVAL-AUTH-001",
+        "KB-008",
+        "HIST-001"
+      ]
+    },
+    "confidence": "high",
+    "recommendations": [
+      {
+        "text": "Verify token expiry and scope without sharing credentials; rotate the credential if it is expired or invalid. Do not request a concurrency increase for this 401.",
+        "source_ids": [
+          "KB-008",
+          "EVAL-AUTH-001",
+          "ACC-005"
+        ]
+      }
+    ],
+    "uncertainties": [
+      "No retained usage or account-event records were available for the requested windows, so concurrency behavior and recent configuration changes cannot be assessed from those sources.",
+      "The regional incident lookup found no matching incident in us-east-1 during the 48-hour window; this does not rule out unknown incidents.",
+      "No evidence identifies the specific token validity issue."
+    ],
+    "proposed_action": null
+  },
+  "evidence_ids": [
+    "ACC-005",
+    "EMPTY-events-ACC-005",
+    "EMPTY-usage-ACC-005",
+    "EVAL-AUTH-001",
+    "HIST-001",
+    "HIST-002",
+    "HIST-007",
+    "INC-1045",
+    "INCIDENTS-ACC-005",
+    "KB-007",
+    "KB-008"
+  ],
+  "evaluation": {
+    "checks": {
+      "required_evidence_retrieved": true,
+      "required_sources_cited": true,
+      "tool_selection": true,
+      "diagnosis_accuracy": true,
+      "action_selection": true,
+      "avoids_known_wrong_conclusions": true,
+      "citation_groundedness": true,
+      "no_unauthorized_execution": true,
+      "within_tool_budget": true
+    },
+    "metrics": {
+      "confidence": "high",
+      "citation_count": 9,
+      "valid_citation_ratio": 1.0,
+      "required_source_recall": 1.0,
+      "observed_read_tools": [
+        "get_account_context",
+        "get_account_events",
+        "get_api_errors",
+        "get_incidents",
+        "get_usage_metrics"
+      ],
+      "observed_tool_sequence": [
+        "get_account_context",
+        "get_api_errors",
+        "get_incidents",
+        "get_usage_metrics",
+        "file_search",
+        "get_account_events"
+      ],
+      "file_search_calls": 1,
+      "tool_call_count": 6,
+      "uncertainty_count": 3,
+      "proposal_created": false
+    },
+    "passed": true
+  },
+  "token_usage": {
+    "input_tokens": 20088,
+    "output_tokens": 459,
+    "total_tokens": 20547,
+    "cached_input_tokens": 17330,
+    "cache_write_tokens": 1405,
+    "reasoning_tokens": 68
+  },
+  "cost": {
+    "input_usd_estimate": 0.000484225,
+    "output_usd_estimate": 0.0002295,
+    "file_search_call_usd_estimate": 0.0025,
+    "total_usd_estimate": 0.003213725,
+    "pricing_assumptions": "Standard short-context GPT-6 Luna rates; cached input separated when usage reports it; excludes storage, index setup/embedding charges and taxes."
+  },
+  "tool_trace": [
+    {
+      "response_id": "resp_0de654cb757b8a9e016ab9fc31e72087d0bdc8fd2e92ec780a",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2661,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 2632
+        },
+        "output_tokens": 15,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2676
+      }
+    },
+    {
+      "name": "get_account_context",
+      "arguments": {},
+      "source_ids": [
+        "ACC-005"
+      ]
+    },
+    {
+      "response_id": "resp_0de654cb757b8a9e016ab9fc32a67087d0ad55736c86659b14",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2804,
+        "input_tokens_details": {
+          "cache_write_tokens": 143,
+          "cached_tokens": 2632
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2825
+      }
+    },
+    {
+      "name": "get_api_errors",
+      "arguments": {
+        "lookback_hours": 24
+      },
+      "source_ids": [
+        "EVAL-AUTH-001"
+      ]
+    },
+    {
+      "response_id": "resp_0de654cb757b8a9e016ab9fc33b28487d0ae3ef632afeda6c9",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2978,
+        "input_tokens_details": {
+          "cache_write_tokens": 174,
+          "cached_tokens": 2775
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2999
+      }
+    },
+    {
+      "name": "get_incidents",
+      "arguments": {
+        "lookback_hours": 48
+      },
+      "source_ids": [
+        "INCIDENTS-ACC-005"
+      ]
+    },
+    {
+      "response_id": "resp_0de654cb757b8a9e016ab9fc347b8487d083f42acd5ad35509",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 3128,
+        "input_tokens_details": {
+          "cache_write_tokens": 150,
+          "cached_tokens": 2949
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3149
+      }
+    },
+    {
+      "name": "get_usage_metrics",
+      "arguments": {
+        "lookback_hours": 24
+      },
+      "source_ids": [
+        "EMPTY-usage-ACC-005"
+      ]
+    },
+    {
+      "response_id": "resp_0de654cb757b8a9e016ab9fc3568c087d0a01282e8c17e4b3a",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 4451,
+        "input_tokens_details": {
+          "cache_write_tokens": 144,
+          "cached_tokens": 3099
+        },
+        "output_tokens": 89,
+        "output_tokens_details": {
+          "reasoning_tokens": 68
+        },
+        "total_tokens": 4540
+      }
+    },
+    {
+      "name": "file_search",
+      "arguments": {
+        "queries": [
+          "INC-1045 Atlas Labs INVALID_TOKEN 401 POST /v2/sync/jobs causes and troubleshooting",
+          "Acme Sync API v2 HTTP 401 INVALID_TOKEN authentication token expired malformed credentials KB",
+          "Historical cases INVALID_TOKEN 401 concurrency limit Acme Sync API v2"
+        ]
+      },
+      "source_ids": [
+        "HIST-007",
+        "HIST-001",
+        "KB-008",
+        "KB-007",
+        "HIST-002"
+      ]
+    },
+    {
+      "name": "get_account_events",
+      "arguments": {
+        "lookback_hours": 168
+      },
+      "source_ids": [
+        "EMPTY-events-ACC-005"
+      ]
+    },
+    {
+      "response_id": "resp_0de654cb757b8a9e016ab9fc38461c87d09658cf777db23cee",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 4066,
+        "input_tokens_details": {
+          "cache_write_tokens": 794,
+          "cached_tokens": 3243
+        },
+        "output_tokens": 292,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 4358
+      }
+    }
+  ]
+}

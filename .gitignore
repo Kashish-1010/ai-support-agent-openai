@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Local conversation history; do not publish in a public repository
+/logs/prompts.md
+
+# Local runtime artifacts
+data/local/*
+!data/local/.gitkeep
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# Editor and operating system
+.DS_Store
+.idea/
+.vscode/
+
+# Project-local dependency tooling and Python runtime
+.tools/
+
+# Scratch work
+work/

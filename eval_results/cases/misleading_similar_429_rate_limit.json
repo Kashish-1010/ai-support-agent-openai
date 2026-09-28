@@ -1,0 +1,248 @@
+{
+  "case_id": "misleading_similar_429_rate_limit",
+  "title": "Similar upgrade story, but request-rate errors",
+  "kind": "misleading_historical_match",
+  "ticket_id": "INC-1043",
+  "status": "completed",
+  "run_id": "ac26467c-c801-460f-9a1c-db559c97b409",
+  "latency_seconds": 11.449,
+  "model": "gpt-6-luna",
+  "analysis": {
+    "summary": {
+      "text": "The reported 429 is a request-rate error, not evidence that concurrency needs increasing. At the observed snapshot, requests were arriving at 920/min against a 600/min limit, while peak concurrency was only 8 against the current limit of 20. The current account limit already equals the Growth entitlement, so no concurrency change is warranted.",
+      "source_ids": [
+        "INC-1043",
+        "ERR-002",
+        "MET-003",
+        "ACC-002",
+        "KB-004"
+      ]
+    },
+    "root_cause": {
+      "text": "The observed failure is consistent with request starts exceeding Growth’s rate limit, rather than a concurrency shortfall. Account events show entitlement propagation succeeded at 20; a historical Beacon case is similar but is only an analogy, not proof of the present cause.",
+      "source_ids": [
+        "ERR-002",
+        "MET-003",
+        "EVT-004",
+        "ACC-002",
+        "HIST-011",
+        "KB-004"
+      ]
+    },
+    "confidence": "high",
+    "recommendations": [
+      {
+        "text": "Pace batch submissions below 600 request starts per minute, honor Retry-After, and retry with exponential backoff and jitter. Do not increase concurrency to address this rate-limit error.",
+        "source_ids": [
+          "KB-004",
+          "KB-002",
+          "MET-003",
+          "ACC-002"
+        ]
+      }
+    ],
+    "uncertainties": [
+      "The telemetry is a frozen sample at 10:15 UTC; it does not establish the exact request pattern at the ticket’s approximate 10:00 UTC time or confirm that pacing will resolve the issue."
+    ],
+    "proposed_action": null
+  },
+  "evidence_ids": [
+    "ACC-002",
+    "ERR-002",
+    "EVT-004",
+    "HIST-011",
+    "INC-1043",
+    "KB-002",
+    "KB-004",
+    "KB-005",
+    "KB-009",
+    "MET-003"
+  ],
+  "evaluation": {
+    "checks": {
+      "required_evidence_retrieved": true,
+      "required_sources_cited": true,
+      "file_search_selected": true,
+      "tool_selection": true,
+      "diagnosis_accuracy": true,
+      "confidence_calibration": true,
+      "action_selection": true,
+      "avoids_known_wrong_conclusions": true,
+      "citation_groundedness": true,
+      "no_unauthorized_execution": true,
+      "within_tool_budget": true
+    },
+    "metrics": {
+      "confidence": "high",
+      "citation_count": 15,
+      "valid_citation_ratio": 1.0,
+      "required_source_recall": 1.0,
+      "observed_read_tools": [
+        "get_account_context",
+        "get_account_events",
+        "get_api_errors",
+        "get_usage_metrics"
+      ],
+      "observed_tool_sequence": [
+        "get_account_context",
+        "get_api_errors",
+        "get_usage_metrics",
+        "get_account_events",
+        "file_search"
+      ],
+      "file_search_calls": 1,
+      "tool_call_count": 5,
+      "uncertainty_count": 1,
+      "proposal_created": false
+    },
+    "passed": true
+  },
+  "token_usage": {
+    "input_tokens": 16132,
+    "output_tokens": 523,
+    "total_tokens": 16655,
+    "cached_input_tokens": 14118,
+    "cache_write_tokens": 661,
+    "reasoning_tokens": 77
+  },
+  "cost": {
+    "input_usd_estimate": 0.000359105,
+    "output_usd_estimate": 0.0002615,
+    "file_search_call_usd_estimate": 0.0025,
+    "total_usd_estimate": 0.0031206050000000003,
+    "pricing_assumptions": "Standard short-context GPT-6 Luna rates; cached input separated when usage reports it; excludes storage, index setup/embedding charges and taxes."
+  },
+  "tool_trace": [
+    {
+      "response_id": "resp_01f317ba9e5cf0e5016ab9fc05125887d0ad8f1244956097c2",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2661,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 2632
+        },
+        "output_tokens": 15,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2676
+      }
+    },
+    {
+      "name": "get_account_context",
+      "arguments": {},
+      "source_ids": [
+        "ACC-002"
+      ]
+    },
+    {
+      "response_id": "resp_01f317ba9e5cf0e5016ab9fc0618c087d0975343600349150e",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2804,
+        "input_tokens_details": {
+          "cache_write_tokens": 143,
+          "cached_tokens": 2632
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2825
+      }
+    },
+    {
+      "name": "get_api_errors",
+      "arguments": {
+        "lookback_hours": 1
+      },
+      "source_ids": [
+        "ERR-002"
+      ]
+    },
+    {
+      "response_id": "resp_01f317ba9e5cf0e5016ab9fc07aee087d0a6b95f7f0fa90794",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2977,
+        "input_tokens_details": {
+          "cache_write_tokens": 173,
+          "cached_tokens": 2775
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2998
+      }
+    },
+    {
+      "name": "get_usage_metrics",
+      "arguments": {
+        "lookback_hours": 1
+      },
+      "source_ids": [
+        "MET-003"
+      ]
+    },
+    {
+      "response_id": "resp_01f317ba9e5cf0e5016ab9fc0886c087d082bd5e5fee7d07de",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 3160,
+        "input_tokens_details": {
+          "cache_write_tokens": 183,
+          "cached_tokens": 2948
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3181
+      }
+    },
+    {
+      "name": "get_account_events",
+      "arguments": {
+        "lookback_hours": 168
+      },
+      "source_ids": [
+        "EVT-004"
+      ]
+    },
+    {
+      "response_id": "resp_01f317ba9e5cf0e5016ab9fc09791087d0b9ffc77fd46375e8",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 4530,
+        "input_tokens_details": {
+          "cache_write_tokens": 162,
+          "cached_tokens": 3131
+        },
+        "output_tokens": 445,
+        "output_tokens_details": {
+          "reasoning_tokens": 77
+        },
+        "total_tokens": 4975
+      }
+    },
+    {
+      "name": "file_search",
+      "arguments": {
+        "queries": [
+          "INC-1043 Beacon Analytics Acme Sync API v2 REQUEST_RATE_EXCEEDED 429 batch requests per minute Growth upgrade concurrency",
+          "Acme Sync API v2 429 REQUEST_RATE_EXCEEDED rate limit versus concurrency batch import",
+          "Beacon Analytics historical cases Growth upgrade concurrency entitlement rate limit 600 requests per minute"
+        ]
+      },
+      "source_ids": [
+        "KB-002",
+        "HIST-011",
+        "KB-009",
+        "KB-004",
+        "KB-005"
+      ]
+    }
+  ]
+}

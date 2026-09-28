@@ -1,0 +1,247 @@
+{
+  "case_id": "monthly_quota_not_concurrency",
+  "title": "Quota exhaustion distinguished from low concurrency",
+  "kind": "clear_resolution",
+  "ticket_id": "INC-1044",
+  "status": "completed",
+  "run_id": "566b1143-5de8-44a5-a430-fea3454a9357",
+  "latency_seconds": 9.404,
+  "model": "gpt-6-luna",
+  "analysis": {
+    "summary": {
+      "text": "The reported 429 is a monthly-quota rejection, not evidence of a concurrency cap. Usage telemetry shows 100% monthly allowance used, while peak attempted and admitted concurrency were both 3. The current enforced limit is 5, equal to the Starter entitlement, so no concurrency restoration is indicated.",
+      "source_ids": [
+        "INC-1044",
+        "EVAL-QUOTA-001",
+        "EVAL-QUOTA-002",
+        "ACC-003",
+        "KB-003"
+      ]
+    },
+    "root_cause": {
+      "text": "Monthly allowance exhaustion is the supported cause: MONTHLY_QUOTA_EXCEEDED occurred at 10:00 UTC and usage was 100%. Raising concurrency would not replenish monthly allowance; the historical Cedar case similarly required billing-entitlement review, though that case is analogy, not evidence of this account’s billing situation.",
+      "source_ids": [
+        "INC-1044",
+        "EVAL-QUOTA-001",
+        "EVAL-QUOTA-002",
+        "KB-003",
+        "HIST-003"
+      ]
+    },
+    "confidence": "high",
+    "recommendations": [
+      {
+        "text": "Do not raise concurrency for this error. Review monthly allowance and billing entitlement with the customer; confirm quota reset or entitlement details before advising on continued sync usage.",
+        "source_ids": [
+          "EVAL-QUOTA-001",
+          "EVAL-QUOTA-002",
+          "ACC-003",
+          "KB-003",
+          "HIST-003"
+        ]
+      }
+    ],
+    "uncertainties": [
+      "No retained account events are available for the prior seven days; the evidence does not establish why the monthly allowance was consumed or whether any billing change is pending.",
+      "The current account configuration timestamp is later than the ticket’s event time; it confirms the present limit and entitlement, not necessarily the exact configuration at 10:00 UTC."
+    ],
+    "proposed_action": null
+  },
+  "evidence_ids": [
+    "ACC-003",
+    "EMPTY-events-ACC-003",
+    "EVAL-QUOTA-001",
+    "EVAL-QUOTA-002",
+    "HIST-003",
+    "INC-1044",
+    "KB-002",
+    "KB-003",
+    "KB-004",
+    "KB-006"
+  ],
+  "evaluation": {
+    "checks": {
+      "required_evidence_retrieved": true,
+      "required_sources_cited": true,
+      "tool_selection": true,
+      "diagnosis_accuracy": true,
+      "action_selection": true,
+      "avoids_known_wrong_conclusions": true,
+      "citation_groundedness": true,
+      "no_unauthorized_execution": true,
+      "within_tool_budget": true
+    },
+    "metrics": {
+      "confidence": "high",
+      "citation_count": 15,
+      "valid_citation_ratio": 1.0,
+      "required_source_recall": 1.0,
+      "observed_read_tools": [
+        "get_account_context",
+        "get_account_events",
+        "get_api_errors",
+        "get_usage_metrics"
+      ],
+      "observed_tool_sequence": [
+        "get_account_context",
+        "get_api_errors",
+        "get_usage_metrics",
+        "get_account_events",
+        "file_search"
+      ],
+      "file_search_calls": 1,
+      "tool_call_count": 5,
+      "uncertainty_count": 2,
+      "proposal_created": false
+    },
+    "passed": true
+  },
+  "token_usage": {
+    "input_tokens": 16246,
+    "output_tokens": 514,
+    "total_tokens": 16760,
+    "cached_input_tokens": 14171,
+    "cache_write_tokens": 634,
+    "reasoning_tokens": 77
+  },
+  "cost": {
+    "input_usd_estimate": 0.00036506,
+    "output_usd_estimate": 0.000257,
+    "file_search_call_usd_estimate": 0.0025,
+    "total_usd_estimate": 0.0031220600000000003,
+    "pricing_assumptions": "Standard short-context GPT-6 Luna rates; cached input separated when usage reports it; excludes storage, index setup/embedding charges and taxes."
+  },
+  "tool_trace": [
+    {
+      "response_id": "resp_046fd9574a1fdb7a016ab9fc3b8de887d086ff2f0a58840425",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2673,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 2644
+        },
+        "output_tokens": 15,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2688
+      }
+    },
+    {
+      "name": "get_account_context",
+      "arguments": {},
+      "source_ids": [
+        "ACC-003"
+      ]
+    },
+    {
+      "response_id": "resp_046fd9574a1fdb7a016ab9fc3c9a8487d09861961b73fbc6bd",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2818,
+        "input_tokens_details": {
+          "cache_write_tokens": 145,
+          "cached_tokens": 2644
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2839
+      }
+    },
+    {
+      "name": "get_api_errors",
+      "arguments": {
+        "lookback_hours": 24
+      },
+      "source_ids": [
+        "EVAL-QUOTA-001"
+      ]
+    },
+    {
+      "response_id": "resp_046fd9574a1fdb7a016ab9fc3d703c87d0939f7ac4de68540f",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2988,
+        "input_tokens_details": {
+          "cache_write_tokens": 170,
+          "cached_tokens": 2789
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3009
+      }
+    },
+    {
+      "name": "get_usage_metrics",
+      "arguments": {
+        "lookback_hours": 24
+      },
+      "source_ids": [
+        "EVAL-QUOTA-002"
+      ]
+    },
+    {
+      "response_id": "resp_046fd9574a1fdb7a016ab9fc3e360087d08039fbd372603593",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 3164,
+        "input_tokens_details": {
+          "cache_write_tokens": 176,
+          "cached_tokens": 2959
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3185
+      }
+    },
+    {
+      "name": "get_account_events",
+      "arguments": {
+        "lookback_hours": 168
+      },
+      "source_ids": [
+        "EMPTY-events-ACC-003"
+      ]
+    },
+    {
+      "response_id": "resp_046fd9574a1fdb7a016ab9fc3eff8087d0afeacc4a8a71b37d",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 4603,
+        "input_tokens_details": {
+          "cache_write_tokens": 143,
+          "cached_tokens": 3135
+        },
+        "output_tokens": 436,
+        "output_tokens_details": {
+          "reasoning_tokens": 77
+        },
+        "total_tokens": 5039
+      }
+    },
+    {
+      "name": "file_search",
+      "arguments": {
+        "queries": [
+          "Cedar Logistics MONTHLY_QUOTA_EXCEEDED POST /v2/sync/jobs whether concurrency changes monthly quota or quota exhausted",
+          "Acme Sync API v2 monthly quota versus concurrency limit 429 MONTHLY_QUOTA_EXCEEDED troubleshooting",
+          "Historical case MONTHLY_QUOTA_EXCEEDED Starter plan concurrency restored entitlement"
+        ]
+      },
+      "source_ids": [
+        "KB-003",
+        "HIST-003",
+        "KB-004",
+        "KB-006",
+        "KB-002"
+      ]
+    }
+  ]
+}

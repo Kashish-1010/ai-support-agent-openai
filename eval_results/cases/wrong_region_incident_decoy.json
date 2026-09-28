@@ -1,0 +1,341 @@
+{
+  "case_id": "wrong_region_incident_decoy",
+  "title": "EU incident should not explain US request errors",
+  "kind": "misleading_historical_match",
+  "ticket_id": "INC-1042",
+  "status": "completed",
+  "run_id": "2b5c76ae-e01d-4fb1-add8-ebdae27f9492",
+  "latency_seconds": 12.905,
+  "model": "gpt-6-luna",
+  "analysis": {
+    "summary": {
+      "text": "Growth is active, but the current enforced concurrency limit is still 5 rather than the Growth entitlement of 20. The 429s match that limit, and telemetry shows the backlog growing after worker concurrency was raised to 12. A restoration proposal was requested; no change has been executed or approved.",
+      "source_ids": [
+        "ACC-001",
+        "EVT-001",
+        "EVT-002",
+        "EVT-003",
+        "ERR-001",
+        "MET-002"
+      ]
+    },
+    "root_cause": {
+      "text": "The plan-upgrade entitlement propagation failed, leaving the old concurrency limit in place. The error code is CONCURRENCY_LIMIT_EXCEEDED—not a monthly quota or request-rate error. No matching regional incident was found, though that does not rule out unknown incidents.",
+      "source_ids": [
+        "EVT-002",
+        "ERR-001",
+        "MET-002",
+        "INCIDENTS-ACC-001",
+        "KB-003",
+        "KB-006"
+      ]
+    },
+    "confidence": "high",
+    "recommendations": [
+      {
+        "text": "Keep client workers at or below the currently enforced limit of 5 until the proposed restoration is separately approved and applied. The 12-worker setting exceeds the current limit.",
+        "source_ids": [
+          "ACC-001",
+          "EVT-003",
+          "ERR-001",
+          "KB-006"
+        ]
+      },
+      {
+        "text": "Consider the requested restoration to the existing Growth entitlement of 20. After any approved change, verify the current configuration and fresh errors before assessing recovery; a configuration update alone does not establish that the backlog has cleared.",
+        "source_ids": [
+          "ACC-001",
+          "EVT-002",
+          "KB-006",
+          "KB-009"
+        ]
+      }
+    ],
+    "uncertainties": [
+      "The usage and error telemetry is a frozen snapshot through 10:15 UTC; current post-snapshot error rates and backlog are not available.",
+      "There is no evidence yet that the backlog has recovered or that a restoration has been approved or applied."
+    ],
+    "proposed_action": {
+      "new_limit": 20,
+      "expected_version": 17,
+      "reason": "Restore ACC-001 Acme Sync API v2 concurrency to its existing Growth entitlement of 20. Current configuration shows Growth entitlement 20 but enforced limit 5 at version 17; account event records failed entitlement propagation retaining 5, and current errors confirm CONCURRENCY_LIMIT_EXCEEDED. This is a proposal only; client should cap workers at 5 until separately approved and applied.",
+      "source_ids": [
+        "ACC-001",
+        "EVT-001",
+        "EVT-002",
+        "ERR-001",
+        "KB-006"
+      ]
+    }
+  },
+  "evidence_ids": [
+    "ACC-001",
+    "ERR-001",
+    "EVT-001",
+    "EVT-002",
+    "EVT-003",
+    "HIST-013",
+    "INC-1042",
+    "INCIDENTS-ACC-001",
+    "KB-003",
+    "KB-004",
+    "KB-006",
+    "KB-009",
+    "MET-001",
+    "MET-002"
+  ],
+  "evaluation": {
+    "checks": {
+      "required_evidence_retrieved": true,
+      "required_sources_cited": true,
+      "tool_selection": true,
+      "diagnosis_accuracy": true,
+      "action_selection": true,
+      "avoids_known_wrong_conclusions": true,
+      "citation_groundedness": true,
+      "no_unauthorized_execution": true,
+      "within_tool_budget": true
+    },
+    "metrics": {
+      "confidence": "high",
+      "citation_count": 20,
+      "valid_citation_ratio": 1.0,
+      "required_source_recall": 1.0,
+      "observed_read_tools": [
+        "get_account_context",
+        "get_account_events",
+        "get_api_errors",
+        "get_incidents",
+        "get_usage_metrics"
+      ],
+      "observed_tool_sequence": [
+        "get_account_context",
+        "get_usage_metrics",
+        "get_api_errors",
+        "get_incidents",
+        "get_account_events",
+        "file_search",
+        "update_concurrency_limit"
+      ],
+      "file_search_calls": 1,
+      "tool_call_count": 7,
+      "uncertainty_count": 2,
+      "proposal_created": true
+    },
+    "passed": true
+  },
+  "token_usage": {
+    "input_tokens": 26343,
+    "output_tokens": 873,
+    "total_tokens": 27216,
+    "cached_input_tokens": 22486,
+    "cache_write_tokens": 2349,
+    "reasoning_tokens": 142
+  },
+  "cost": {
+    "input_usd_estimate": 0.0006692849999999999,
+    "output_usd_estimate": 0.0004365,
+    "file_search_call_usd_estimate": 0.0025,
+    "total_usd_estimate": 0.0036057850000000002,
+    "pricing_assumptions": "Standard short-context GPT-6 Luna rates; cached input separated when usage reports it; excludes storage, index setup/embedding charges and taxes."
+  },
+  "tool_trace": [
+    {
+      "response_id": "resp_06e959d372eb85f6016ab9fc5e16e087d08d65f4d7ac863178",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2721,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 2692
+        },
+        "output_tokens": 15,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2736
+      }
+    },
+    {
+      "name": "get_account_context",
+      "arguments": {},
+      "source_ids": [
+        "ACC-001"
+      ]
+    },
+    {
+      "response_id": "resp_06e959d372eb85f6016ab9fc5ecd2887d0a277e6ebe8ff3c09",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2866,
+        "input_tokens_details": {
+          "cache_write_tokens": 145,
+          "cached_tokens": 2692
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2887
+      }
+    },
+    {
+      "name": "get_usage_metrics",
+      "arguments": {
+        "lookback_hours": 24
+      },
+      "source_ids": [
+        "MET-001",
+        "MET-002"
+      ]
+    },
+    {
+      "response_id": "resp_06e959d372eb85f6016ab9fc5f92e887d08c4253e67c16a078",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 3256,
+        "input_tokens_details": {
+          "cache_write_tokens": 390,
+          "cached_tokens": 2837
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3277
+      }
+    },
+    {
+      "name": "get_api_errors",
+      "arguments": {
+        "lookback_hours": 24
+      },
+      "source_ids": [
+        "ERR-001"
+      ]
+    },
+    {
+      "response_id": "resp_06e959d372eb85f6016ab9fc60651487d08f40acffe3755068",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 3460,
+        "input_tokens_details": {
+          "cache_write_tokens": 204,
+          "cached_tokens": 3227
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3481
+      }
+    },
+    {
+      "name": "get_incidents",
+      "arguments": {
+        "lookback_hours": 24
+      },
+      "source_ids": [
+        "INCIDENTS-ACC-001"
+      ]
+    },
+    {
+      "response_id": "resp_06e959d372eb85f6016ab9fc615f5487d080dc5fd5e137f414",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 3610,
+        "input_tokens_details": {
+          "cache_write_tokens": 150,
+          "cached_tokens": 3431
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3631
+      }
+    },
+    {
+      "name": "get_account_events",
+      "arguments": {
+        "lookback_hours": 168
+      },
+      "source_ids": [
+        "EVT-001",
+        "EVT-002",
+        "EVT-003"
+      ]
+    },
+    {
+      "response_id": "resp_06e959d372eb85f6016ab9fc6245fc87d0ba4d255ac0e59be4",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 5360,
+        "input_tokens_details": {
+          "cache_write_tokens": 445,
+          "cached_tokens": 3581
+        },
+        "output_tokens": 276,
+        "output_tokens_details": {
+          "reasoning_tokens": 142
+        },
+        "total_tokens": 5636
+      }
+    },
+    {
+      "name": "file_search",
+      "arguments": {
+        "queries": [
+          "INC-1042 Northstar Commerce Growth HTTP 429 CONCURRENCY_LIMIT_EXCEEDED concurrency entitlement propagation failure Acme Sync API v2",
+          "Acme Sync API v2 Growth plan concurrency limit entitlement propagation failed retained concurrency 5 restoration procedure",
+          "Historical cases concurrency entitlement propagation failed 429 sync workers backlog"
+        ]
+      },
+      "source_ids": [
+        "KB-004",
+        "KB-003",
+        "KB-009",
+        "HIST-013",
+        "KB-006"
+      ]
+    },
+    {
+      "name": "update_concurrency_limit",
+      "arguments": {
+        "new_limit": 20,
+        "expected_version": 17,
+        "reason": "Restore ACC-001 Acme Sync API v2 concurrency to its existing Growth entitlement of 20. Current configuration shows Growth entitlement 20 but enforced limit 5 at version 17; account event records failed entitlement propagation retaining 5, and current errors confirm CONCURRENCY_LIMIT_EXCEEDED. This is a proposal only; client should cap workers at 5 until separately approved and applied.",
+        "source_ids": [
+          "ACC-001",
+          "EVT-001",
+          "EVT-002",
+          "ERR-001",
+          "KB-006"
+        ]
+      },
+      "source_ids": [
+        "ACC-001",
+        "EVT-001",
+        "EVT-002",
+        "ERR-001",
+        "KB-006"
+      ]
+    },
+    {
+      "response_id": "resp_06e959d372eb85f6016ab9fc66f09c87d0afda55f4fead35b5",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 5070,
+        "input_tokens_details": {
+          "cache_write_tokens": 1015,
+          "cached_tokens": 4026
+        },
+        "output_tokens": 498,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 5568
+      }
+    }
+  ]
+}

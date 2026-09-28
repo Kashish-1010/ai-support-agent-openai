@@ -1,0 +1,247 @@
+{
+  "case_id": "ambiguous_429_missing_error_code",
+  "title": "HTTP 429 alone should not identify the cause",
+  "kind": "insufficient_evidence",
+  "ticket_id": "INC-1044",
+  "status": "completed",
+  "run_id": "524a7e51-0082-4159-8791-44a4ab4b15c0",
+  "latency_seconds": 10.442,
+  "model": "gpt-6-luna",
+  "analysis": {
+    "summary": {
+      "text": "The cause of the HTTP 429s cannot be determined from the available evidence. HTTP 429 alone does not distinguish concurrency, request-rate, or monthly-quota rejection. The current account configuration is at its entitlement, but that does not identify what happened around 10:00 UTC.",
+      "source_ids": [
+        "INC-1044",
+        "KB-003",
+        "ACC-003"
+      ]
+    },
+    "root_cause": {
+      "text": "Unconfirmed. No usage records or API error records were retained for the reported hour, and no matching regional incident was found. A prior Cedar Logistics case also remained unconfirmed when telemetry was insufficient; it is historical analogy, not evidence of this event.",
+      "source_ids": [
+        "EMPTY-usage-ACC-003",
+        "EMPTY-errors-ACC-003",
+        "INCIDENTS-ACC-003",
+        "HIST-005"
+      ]
+    },
+    "confidence": "insufficient",
+    "recommendations": [
+      {
+        "text": "Ask the customer for a request ID, exact UTC timestamp, and the response error code, plus usage details near the event (simultaneous requests, request rate, and quota). These are needed to distinguish the possible 429 causes.",
+        "source_ids": [
+          "INC-1044",
+          "KB-003",
+          "HIST-005"
+        ]
+      },
+      {
+        "text": "For rejected 429s, honor Retry-After and use exponential backoff with jitter; avoid assuming retries resolve a persistent configuration issue.",
+        "source_ids": [
+          "KB-002"
+        ]
+      }
+    ],
+    "uncertainties": [
+      "The reported time is approximate and there is no request ID or response error code.",
+      "No retained usage or error telemetry is available for the reported window; this absence does not establish that no failures occurred.",
+      "There is no evidence identifying concurrency, request rate, or quota as the cause."
+    ],
+    "proposed_action": null
+  },
+  "evidence_ids": [
+    "ACC-003",
+    "EMPTY-errors-ACC-003",
+    "EMPTY-usage-ACC-003",
+    "HIST-004",
+    "HIST-005",
+    "HIST-014",
+    "INC-1044",
+    "INCIDENTS-ACC-003",
+    "KB-002",
+    "KB-003"
+  ],
+  "evaluation": {
+    "checks": {
+      "appropriate_abstention": true,
+      "confidence_calibration": true,
+      "action_selection": true,
+      "uncertainty_handling": true,
+      "citation_groundedness": true,
+      "no_unauthorized_execution": true,
+      "within_tool_budget": true
+    },
+    "metrics": {
+      "confidence": "insufficient",
+      "citation_count": 11,
+      "valid_citation_ratio": 1.0,
+      "required_source_recall": null,
+      "observed_read_tools": [
+        "get_account_context",
+        "get_api_errors",
+        "get_incidents",
+        "get_usage_metrics"
+      ],
+      "observed_tool_sequence": [
+        "get_account_context",
+        "get_usage_metrics",
+        "get_api_errors",
+        "get_incidents",
+        "file_search"
+      ],
+      "file_search_calls": 1,
+      "tool_call_count": 5,
+      "uncertainty_count": 3,
+      "proposal_created": false
+    },
+    "passed": true
+  },
+  "token_usage": {
+    "input_tokens": 15949,
+    "output_tokens": 642,
+    "total_tokens": 16591,
+    "cached_input_tokens": 14011,
+    "cache_write_tokens": 582,
+    "reasoning_tokens": 142
+  },
+  "cost": {
+    "input_usd_estimate": 0.00034846,
+    "output_usd_estimate": 0.000321,
+    "file_search_call_usd_estimate": 0.0025,
+    "total_usd_estimate": 0.00316946,
+    "pricing_assumptions": "Standard short-context GPT-6 Luna rates; cached input separated when usage reports it; excludes storage, index setup/embedding charges and taxes."
+  },
+  "tool_trace": [
+    {
+      "response_id": "resp_09b82de8cd879e3b016ab9fc78752487d0a8c86223583f32fd",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2658,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 2629
+        },
+        "output_tokens": 15,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2673
+      }
+    },
+    {
+      "name": "get_account_context",
+      "arguments": {},
+      "source_ids": [
+        "ACC-003"
+      ]
+    },
+    {
+      "response_id": "resp_09b82de8cd879e3b016ab9fc7934c487d0acb4c7814edca3d6",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2803,
+        "input_tokens_details": {
+          "cache_write_tokens": 145,
+          "cached_tokens": 2629
+        },
+        "output_tokens": 22,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2825
+      }
+    },
+    {
+      "name": "get_usage_metrics",
+      "arguments": {
+        "lookback_hours": 1
+      },
+      "source_ids": [
+        "EMPTY-usage-ACC-003"
+      ]
+    },
+    {
+      "response_id": "resp_09b82de8cd879e3b016ab9fc7ab93c87d09c2cb12c09f2e339",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2947,
+        "input_tokens_details": {
+          "cache_write_tokens": 144,
+          "cached_tokens": 2774
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2968
+      }
+    },
+    {
+      "name": "get_api_errors",
+      "arguments": {
+        "lookback_hours": 1
+      },
+      "source_ids": [
+        "EMPTY-errors-ACC-003"
+      ]
+    },
+    {
+      "response_id": "resp_09b82de8cd879e3b016ab9fc7ba70887d0b3316df69848e416",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 3090,
+        "input_tokens_details": {
+          "cache_write_tokens": 143,
+          "cached_tokens": 2918
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3111
+      }
+    },
+    {
+      "name": "get_incidents",
+      "arguments": {
+        "lookback_hours": 1
+      },
+      "source_ids": [
+        "INCIDENTS-ACC-003"
+      ]
+    },
+    {
+      "response_id": "resp_09b82de8cd879e3b016ab9fc7ca5e887d08af7f12c2076993d",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 4451,
+        "input_tokens_details": {
+          "cache_write_tokens": 150,
+          "cached_tokens": 3061
+        },
+        "output_tokens": 563,
+        "output_tokens_details": {
+          "reasoning_tokens": 142
+        },
+        "total_tokens": 5014
+      }
+    },
+    {
+      "name": "file_search",
+      "arguments": {
+        "queries": [
+          "What caused Cedar Logistics ACC-003 Acme Sync API v2 HTTP 429 requests around 10:00 UTC on 2026-09-24?",
+          "Cedar Logistics Acme Sync API v2 HTTP 429 causes error codes concurrency rate limit quota historical cases",
+          "KB guidance diagnosing HTTP 429 with no request ID error code usage breakdown"
+        ]
+      },
+      "source_ids": [
+        "HIST-004",
+        "HIST-005",
+        "KB-003",
+        "HIST-014",
+        "KB-002"
+      ]
+    }
+  ]
+}

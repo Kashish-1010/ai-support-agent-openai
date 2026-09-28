@@ -1,0 +1,38 @@
+[
+  {
+    "id": "INC-1042",
+    "account_id": "ACC-001",
+    "subject": "429 errors after upgrading to Growth\u2014order sync falling behind",
+    "priority": "High",
+    "scenario": "Primary \u00b7 configuration recovery",
+    "body": "We upgraded to Growth this morning and increased our sync workers from 5 to 12 at about 10:00 UTC. Since then, some requests to POST /v2/sync/jobs return HTTP 429 and our order sync backlog is growing. The usage dashboard shows we are well below our monthly allowance. Is there an outage, or did the upgrade not take effect? Example request ID: req_ns_1042_01.",
+    "status": "Open"
+  },
+  {
+    "id": "INC-1043",
+    "account_id": "ACC-002",
+    "subject": "429 errors after Growth upgrade",
+    "priority": "Medium",
+    "scenario": "Misleading similarity",
+    "body": "Our new import script gets 429 errors when it submits a batch. We upgraded last week. Can you increase our concurrency? Request req_beacon_01, today around 10:00 UTC.",
+    "status": "Open"
+  },
+  {
+    "id": "INC-1044",
+    "account_id": "ACC-003",
+    "subject": "Intermittent sync failures last month",
+    "priority": "Medium",
+    "scenario": "Insufficient evidence",
+    "body": "Some syncs failed last month. We did not save request IDs or exact times. Can you tell us why?",
+    "status": "Waiting on customer"
+  },
+  {
+    "id": "INC-1045",
+    "account_id": "ACC-004",
+    "subject": "Dashboard delayed although sync jobs complete",
+    "priority": "Medium",
+    "scenario": "Known incident",
+    "body": "Our EU dashboard is about 15 minutes behind since 09:30 UTC today, but our API jobs seem successful. Should we retry them?",
+    "status": "In progress"
+  }
+]

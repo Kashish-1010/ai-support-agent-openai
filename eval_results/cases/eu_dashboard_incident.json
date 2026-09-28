@@ -1,0 +1,282 @@
+{
+  "case_id": "eu_dashboard_incident",
+  "title": "Dashboard lag while API jobs succeed",
+  "kind": "clear_resolution",
+  "ticket_id": "INC-1045",
+  "status": "completed",
+  "run_id": "ecc49d65-9f41-4fd5-af46-9b33bfa53a0d",
+  "latency_seconds": 10.78,
+  "model": "gpt-6-luna",
+  "analysis": {
+    "summary": {
+      "text": "The 15-minute dashboard delay reported since 09:30 UTC matches an active eu-west-1 dashboard-ingestion incident. Current telemetry shows 150 successful jobs, no 429s, and 15 minutes of dashboard lag; the account’s current concurrency limit is already at its entitlement of 20. Do not retry jobs that completed successfully; wait for incident recovery and monitor the dashboard.",
+      "source_ids": [
+        "INCIDENTS-ACC-004",
+        "MET-004",
+        "ACC-004",
+        "HIST-002"
+      ]
+    },
+    "root_cause": {
+      "text": "The evidence points to the dashboard-ingestion incident, not Sync API job processing or a concurrency restriction. The incident is investigating dashboard delay while API job processing is unaffected; this is consistent with the historical Lumen Retail case, which recovered without replaying successful jobs. The historical case is analogy, not proof of today’s recovery.",
+      "source_ids": [
+        "INCIDENTS-ACC-004",
+        "MET-004",
+        "ACC-004",
+        "HIST-002",
+        "HIST-010"
+      ]
+    },
+    "confidence": "high",
+    "recommendations": [
+      {
+        "text": "Avoid retrying successful jobs; wait for the incident to resolve and check whether dashboard freshness returns. A successful-job retry may create duplicate work, as a historical case illustrates.",
+        "source_ids": [
+          "INCIDENTS-ACC-004",
+          "MET-004",
+          "HIST-002",
+          "HIST-006"
+        ]
+      },
+      {
+        "text": "No concurrency change is indicated: the current limit equals the account’s entitlement of 20.",
+        "source_ids": [
+          "ACC-004"
+        ]
+      }
+    ],
+    "uncertainties": [
+      "The incident is still investigating; these sources do not establish when dashboard ingestion will recover.",
+      "No retained API error records were returned, which is missing evidence rather than proof that no failures occurred.",
+      "The telemetry is a snapshot at 10:15 UTC and does not show subsequent recovery."
+    ],
+    "proposed_action": null
+  },
+  "evidence_ids": [
+    "ACC-004",
+    "EMPTY-errors-ACC-004",
+    "EMPTY-events-ACC-004",
+    "HIST-002",
+    "HIST-006",
+    "HIST-010",
+    "INC-1045",
+    "INCIDENTS-ACC-004",
+    "KB-005",
+    "KB-009",
+    "MET-004"
+  ],
+  "evaluation": {
+    "checks": {
+      "required_evidence_retrieved": true,
+      "required_sources_cited": true,
+      "tool_selection": true,
+      "diagnosis_accuracy": true,
+      "confidence_calibration": true,
+      "action_selection": true,
+      "uncertainty_handling": true,
+      "avoids_known_wrong_conclusions": true,
+      "citation_groundedness": true,
+      "no_unauthorized_execution": true,
+      "within_tool_budget": true
+    },
+    "metrics": {
+      "confidence": "high",
+      "citation_count": 14,
+      "valid_citation_ratio": 1.0,
+      "required_source_recall": 1.0,
+      "observed_read_tools": [
+        "get_account_context",
+        "get_account_events",
+        "get_api_errors",
+        "get_incidents",
+        "get_usage_metrics"
+      ],
+      "observed_tool_sequence": [
+        "get_account_context",
+        "get_usage_metrics",
+        "get_api_errors",
+        "get_incidents",
+        "get_account_events",
+        "file_search"
+      ],
+      "file_search_calls": 1,
+      "tool_call_count": 6,
+      "uncertainty_count": 3,
+      "proposal_created": false
+    },
+    "passed": true
+  },
+  "token_usage": {
+    "input_tokens": 19540,
+    "output_tokens": 568,
+    "total_tokens": 20108,
+    "cached_input_tokens": 17353,
+    "cache_write_tokens": 828,
+    "reasoning_tokens": 87
+  },
+  "cost": {
+    "input_usd_estimate": 0.00041292999999999994,
+    "output_usd_estimate": 0.000284,
+    "file_search_call_usd_estimate": 0.0025,
+    "total_usd_estimate": 0.0031969299999999997,
+    "pricing_assumptions": "Standard short-context GPT-6 Luna rates; cached input separated when usage reports it; excludes storage, index setup/embedding charges and taxes."
+  },
+  "tool_trace": [
+    {
+      "response_id": "resp_0837731afc19dbd4016ab9fc19704487d08764cae345f989f4",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2651,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 2622
+        },
+        "output_tokens": 15,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2666
+      }
+    },
+    {
+      "name": "get_account_context",
+      "arguments": {},
+      "source_ids": [
+        "ACC-004"
+      ]
+    },
+    {
+      "response_id": "resp_0837731afc19dbd4016ab9fc1a47e087d0b2bd9466d63f421d",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2796,
+        "input_tokens_details": {
+          "cache_write_tokens": 145,
+          "cached_tokens": 2622
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2817
+      }
+    },
+    {
+      "name": "get_usage_metrics",
+      "arguments": {
+        "lookback_hours": 2
+      },
+      "source_ids": [
+        "MET-004"
+      ]
+    },
+    {
+      "response_id": "resp_0837731afc19dbd4016ab9fc1b46cc87d09bf7a951381a45c8",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 2975,
+        "input_tokens_details": {
+          "cache_write_tokens": 179,
+          "cached_tokens": 2767
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 2996
+      }
+    },
+    {
+      "name": "get_api_errors",
+      "arguments": {
+        "lookback_hours": 2
+      },
+      "source_ids": [
+        "EMPTY-errors-ACC-004"
+      ]
+    },
+    {
+      "response_id": "resp_0837731afc19dbd4016ab9fc1c224887d0a053013e781ed76e",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 3118,
+        "input_tokens_details": {
+          "cache_write_tokens": 143,
+          "cached_tokens": 2946
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3139
+      }
+    },
+    {
+      "name": "get_incidents",
+      "arguments": {
+        "lookback_hours": 12
+      },
+      "source_ids": [
+        "INCIDENTS-ACC-004"
+      ]
+    },
+    {
+      "response_id": "resp_0837731afc19dbd4016ab9fc1d5a2887d083c844613142c2ae",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 3336,
+        "input_tokens_details": {
+          "cache_write_tokens": 218,
+          "cached_tokens": 3089
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3357
+      }
+    },
+    {
+      "name": "get_account_events",
+      "arguments": {
+        "lookback_hours": 168
+      },
+      "source_ids": [
+        "EMPTY-events-ACC-004"
+      ]
+    },
+    {
+      "response_id": "resp_0837731afc19dbd4016ab9fc1e383c87d0bf7faec14c1b5358",
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 4664,
+        "input_tokens_details": {
+          "cache_write_tokens": 143,
+          "cached_tokens": 3307
+        },
+        "output_tokens": 469,
+        "output_tokens_details": {
+          "reasoning_tokens": 87
+        },
+        "total_tokens": 5133
+      }
+    },
+    {
+      "name": "file_search",
+      "arguments": {
+        "queries": [
+          "INC-1045 Lumen Retail EU dashboard delayed 15 minutes since 09:30 UTC 2026-09-24 Sync API jobs successful should retry?",
+          "Known incidents Acme Sync API v2 EU dashboard ingestion delay unaffected sync job processing guidance retries",
+          "Incident 021 dashboard ingestion eu-west-1 September 24 2026 dashboard lag retry jobs"
+        ]
+      },
+      "source_ids": [
+        "HIST-002",
+        "HIST-010",
+        "KB-005",
+        "KB-009",
+        "HIST-006"
+      ]
+    }
+  ]
+}

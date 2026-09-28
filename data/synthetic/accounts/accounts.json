@@ -1,0 +1,52 @@
+[
+  {
+    "id": "ACC-001",
+    "name": "Northstar Commerce",
+    "plan": "Growth",
+    "region": "us-east-1",
+    "product": "Acme Sync API v2",
+    "entitlement": 20,
+    "concurrency_limit": 5,
+    "version": 17
+  },
+  {
+    "id": "ACC-002",
+    "name": "Beacon Analytics",
+    "plan": "Growth",
+    "region": "us-east-1",
+    "product": "Acme Sync API v2",
+    "entitlement": 20,
+    "concurrency_limit": 20,
+    "version": 4
+  },
+  {
+    "id": "ACC-003",
+    "name": "Cedar Logistics",
+    "plan": "Starter",
+    "region": "us-east-1",
+    "product": "Acme Sync API v2",
+    "entitlement": 5,
+    "concurrency_limit": 5,
+    "version": 2
+  },
+  {
+    "id": "ACC-004",
+    "name": "Lumen Retail",
+    "plan": "Growth",
+    "region": "eu-west-1",
+    "product": "Acme Sync API v2",
+    "entitlement": 20,
+    "concurrency_limit": 20,
+    "version": 9
+  },
+  {
+    "id": "ACC-005",
+    "name": "Atlas Labs",
+    "plan": "Enterprise",
+    "region": "us-east-1",
+    "product": "Acme Sync API v2",
+    "entitlement": 50,
+    "concurrency_limit": 50,
+    "version": 12
+  }
+]
