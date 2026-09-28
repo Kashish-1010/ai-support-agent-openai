@@ -33,14 +33,23 @@ with tempfile.TemporaryDirectory() as directory:
     assert any('Usage telemetry' in m.value for m in app.caption)
     assert any('Account configuration' in m.value for m in app.caption)
     assert any('Product KB' in m.value for m in app.caption)
-    assert any('Similar resolved tickets' in m.value for m in app.caption)
-    assert not any('INCIDENTS-ACC-' in p.value or 'MET-00' in p.value or 'KB-00' in p.value for p in app.popover)
+    # Source labels are rendered in finding text and source popovers, while the
+    # Evidence Library expanders retain the technical IDs for provenance.
+    assert any('Similar resolved tickets' in m.value for m in app.get('markdown'))
+    evidence_labels = [e.label for e in app.expander]
+    assert any(label.startswith('INCIDENTS-ACC-') for label in evidence_labels)
+    assert any(label.startswith('MET-') for label in evidence_labels)
+    assert any(label.startswith('KB-') for label in evidence_labels)
+    assert any(label.startswith('HIST-') for label in evidence_labels)
     approve=next(b for b in app.button if b.label=='Approve and execute')
     assert approve.disabled
     app.checkbox[0].check().run()
     next(b for b in app.button if b.label=='Approve and execute').click().run()
     assert not app.exception, app.exception
-    assert any('committed and audited' in m.value for m in app.success)
+    assert any('Change executed' in m.value for m in app.success)
+    assert any('Concurrency limit updated **5 → 20**' in m.value for m in app.markdown)
+    assert any('Configuration version **17 → 18**' in m.value for m in app.markdown)
+    assert any('Audit record created' in m.value for m in app.caption)
     # A new browser session must not automatically reveal persisted findings.
     fresh=AppTest.from_file(str(Path(__file__).resolve().parents[1]/'app.py'),default_timeout=60).run()
     assert not any('Root cause assessment' in m.value for m in fresh.markdown)
