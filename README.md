@@ -1,274 +1,262 @@
-# Acme Support Intelligence
+# Acme Support Agent
 
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB)
 ![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B)
 ![Storage](https://img.shields.io/badge/storage-SQLite-003B57)
-![Evaluation](https://img.shields.io/badge/live%20eval-11%2F12%20rubric%20passes-f1c40f)
+![Evaluation](https://img.shields.io/badge/eval-12%20live%20cases-f1c40f)
 
-An evidence-led support-agent demo for a fictional B2B synchronization API. A support engineer selects a ticket, lets GPT-6 Luna choose the relevant investigation tools and File Search queries, reviews cited findings, and decides whether to approve a proposed configuration correction.
+A support-agent take-home demo for a fictional cloud software company, Acme Corp. It explores how an internal support engineer could investigate a customer issue across operational signals and product knowledge, then review a grounded recommendation before approving a consequential change.
 
-> **From ticket to resolution.** The demo is designed to make the investigation visible: ticket context → model-directed investigation → evidence → diagnosis → recommendation → explicit human approval.
+> **From ticket to resolution.** The agent investigates; the support engineer remains accountable for the action.
 
-All customers, tickets, telemetry, incidents, and documents in this project are synthetic. The app is a take-home/interview demo, not a production support system.
+All customers, tickets, telemetry, incidents, and knowledge documents are synthetic. This is an interview demo, not a production support system.
 
-## Contents
+## The customer problem
 
-- [What the demo shows](#what-the-demo-shows)
-- [Quick start](#quick-start)
-- [Offline rehearsal and Live AI](#offline-rehearsal-and-live-ai)
-- [Five-minute walkthrough](#five-minute-walkthrough)
-- [Primary scenario and synthetic data](#primary-scenario-and-synthetic-data)
-- [Architecture and tool boundaries](#architecture-and-tool-boundaries)
-- [Evaluation](#evaluation)
-- [Validation history](#validation-history)
-- [Production considerations](#production-considerations)
-- [Project layout](#project-layout)
-- [Troubleshooting](#troubleshooting)
+Acme Corp’s customers use **Acme Sync API v2** to process business data. When a customer reports failed syncs, a growing backlog, or HTTP 429 errors, a support engineer may need to reconcile the ticket with account configuration, API telemetry, incident status, product guidance, and similar past cases. A similar-looking ticket can point to the wrong fix, and a configuration change can have consequences.
 
-## What the demo shows
+The demo centers on **Northstar Commerce**. After upgrading its plan and increasing its workers, Northstar reports 429 responses and a growing order backlog. The engineer needs to determine whether the issue is an incident, request pacing, exhausted quota, or a configuration mismatch—and establish what the evidence supports before recommending an action.
 
-- A support inbox with ticket status, priority, customer/account filters, and customer context.
-- A reveal-oriented investigation: the initial ticket view contains neutral account details; diagnostic account configuration appears as evidence only after analysis.
-- Model-directed use of scoped, read-only operational tools and hosted OpenAI File Search. There is no fixed retrieval order.
-- Concise issue summary, root-cause assessment, recommendation, confidence, uncertainty, and a browsable evidence library with source provenance.
-- One consequential write action: propose restoring concurrency to the account’s existing entitlement. The model cannot execute it; a human must explicitly approve the exact proposed change.
-- Transactional SQLite checks and an audit trail for proposal, approval, execution, and configuration before/after values.
-- A post-change reminder that fresh telemetry is still required before claiming the customer’s workload has recovered.
+| | |
+| --- | --- |
+| **User** | Internal support engineer reviewing a customer ticket |
+| **Problem** | Investigation context is distributed across structured operational records and unstructured support knowledge |
+| **Solution** | An evidence-led assistant that selects relevant sources, explains its diagnosis and uncertainty, and presents a bounded recommendation |
+| **Expected value** | Shorter investigations and lower mean time to resolution (MTTR), more Tier-2 capacity, fewer avoidable engineering escalations, and clearer customer responses |
 
-## Quick start
+These are intended outcomes to test in a pilot, not measured results or guaranteed improvements.
 
-### Requirements
+## Why OpenAI Platform
 
-- Python 3.11 or newer (Python 3.12 is used in the checked-in CI workflow).
-- [uv](https://docs.astral.sh/uv/) for installing the locked dependencies.
-- An OpenAI API key and an OpenAI project with access to the configured model for Live AI. No key is needed for the explicitly scripted Offline rehearsal.
+The **OpenAI Platform** is the agent’s reasoning and retrieval surface:
 
-### Install and launch
+- **Responses API** orchestrates the investigation and returns a structured analysis. The model decides which available tools and retrieval sources are useful; the app does not impose a fixed lookup sequence.
+- **Function calling** connects the model to narrowly scoped operational tools for account context, usage metrics, API errors, incidents, and account events. A separate proposal-only function can request a configuration change.
+- **File Search** retrieves unstructured synthetic product knowledge and historical support tickets from a hosted vector store. These sources provide guidance and historical analogies, not proof of a customer’s current state.
 
-From the repository root:
+The Streamlit app presents the case and evidence. Python validates tool calls and actions; SQLite stores the synthetic operational data, investigation records, proposals, and audit events.
 
-```bash
-uv sync --locked
-```
-
-Create a local environment file from the template and add your key there when available. **Never commit `.env` or paste an API key into source code, a prompt log, or an eval artifact.**
-
-```bash
-cp .env.example .env
-```
-
-Set `OPENAI_API_KEY` in `.env`. Then launch the app:
-
-```bash
-uv run streamlit run app.py
-```
-
-Open <http://localhost:8501>. The app initializes and seeds the local SQLite database on first launch. It opens on the filterable support inbox; select a ticket to review it and click **Analyze with AI**. Expand **Demo settings** for development/setup controls, including Offline rehearsal and File Search setup.
-
-### Before publishing to GitHub
-
-The local conversation history in `logs/prompts.md` is intentionally excluded from Git by `.gitignore`. Keep it locally if useful; do not force-add it to a public repository. Review any other files you plan to publish for personal information or credentials. The `.env` file is also ignored; publish only the safe `.env.example` template.
-
-For environments without `uv`, install Python dependencies from `pyproject.toml` and activate that environment before running `streamlit run app.py`. The local development machine also has a project-local uv bootstrap, but it is not required for a fresh clone.
-
-### Configuration
-
-| Variable | Purpose | Default / notes |
-| --- | --- | --- |
-| `OPENAI_API_KEY` | Authentication for Responses API and File Search setup | Empty in `.env.example`; set only in ignored `.env` or your secret manager |
-| `OPENAI_MODEL` | Responses API model | `gpt-6-luna` |
-| `OPENAI_VECTOR_STORE_ID` | Optional existing File Search store override | Blank by default; automatic local manifest is used when present |
-| `ACME_DB_PATH` | Optional SQLite database path | `data/local/acme.db` |
-
-The agent uses low reasoning effort and an 8,192-token output limit. To use Live AI, prepare the synthetic File Search corpus once from **Demo settings → Prepare File Search** or run:
-
-```bash
-uv run python scripts/index_knowledge.py
-```
-
-Indexing uploads the 9 KB articles and 14 historical tickets, not operational telemetry, account records, prompt logs, or secrets. `data/local/index.json` stores the local index ID, document fingerprint, and readiness status. An unchanged completed index is reused. OpenAI vector stores expire after seven inactive days; repeat setup if it has expired. A configured `OPENAI_VECTOR_STORE_ID` must refer to this project’s approved synthetic corpus.
-
-OpenAI API and storage usage can incur charges. See [OpenAI API pricing](https://developers.openai.com/api/docs/pricing). Removing a local manifest does not delete remote resources; clean up unused vector stores and files in your OpenAI project if you no longer need them.
-
-## Offline rehearsal and Live AI
-
-| Mode | What runs | Retrieval | Configuration write |
-| --- | --- | --- | --- |
-| **Offline rehearsal** | A clearly labeled, scripted Northstar answer | Local fixture documents; no Responses API or File Search | A real change to the synthetic SQLite account is still possible, but only after the same explicit human-approval step |
-| **Live AI** | The configured Responses API model chooses the investigation tools and queries | Hosted File Search plus account-bound SQLite read tools | The model may request a proposal; only the UI approval flow can execute it |
-
-Offline rehearsal is for walking through the interface without an API key. It is **not** a model evaluation, a cached API answer, or a silent fallback when Live AI fails. Secondary tickets can be investigated in Live AI. Both modes label their provenance.
-
-## Five-minute walkthrough
-
-1. **0:00–0:40 · Select a ticket.** Choose Northstar Commerce and introduce the reported 429 responses, growing backlog, and recent plan upgrade. The initial account panel intentionally does not reveal the diagnosis.
-2. **0:40–1:40 · Investigate.** Click **Analyze with AI**. In Live AI, show the model choosing its own tool calls instead of following a hard-coded retrieval sequence.
-3. **1:40–2:40 · Review evidence.** Connect `ERR-001` (API error), `MET-002` (usage), `EVT-002` (plan propagation), and `KB-006` (recovery guidance). Compare historical `HIST-007` with misleading `HIST-011` when retrieved. Human-readable source labels appear in the main analysis; technical IDs stay available in the Evidence Library and audit trail.
-4. **2:40–3:40 · Decide.** Review the proposed 5 → 20 restoration. The agent only proposes it. The account remains unchanged until an operator checks the approval box and clicks **Approve and execute**.
-5. **3:40–4:30 · Verify the action.** Show the configuration before/after values, version, and audit record. Explain that a configuration write does not prove workload recovery; fresh telemetry is still required.
-6. **4:30–5:00 · Explain the design.** Highlight model-directed reads, evidence citations, bounded tool access, explicit approval, and the production gaps below. Use **Demo settings → Reset Northstar scenario** to repeat; audit history remains and pending proposals are expired.
-
-If no key/index is ready, use Offline rehearsal and identify it as scripted.
-
-## Primary scenario and synthetic data
-
-The dataset is deliberately small and coherent: **5 customers, 9 KB articles, 14 historical tickets, and 4 incoming tickets**. The scenario contract and expected evidence are in [`docs/scenarios.md`](docs/scenarios.md).
-
-### Northstar Commerce · `INC-1042`
-
-Northstar upgraded from Starter to Growth, increased its sync workers from 5 to 12, and began receiving HTTP 429 responses while its order backlog grew. It asks whether there is an outage or the upgrade failed to take effect.
-
-The answer requires evidence from multiple sources:
-
-| Evidence source | Synthetic evidence | What it establishes |
-| --- | --- | --- |
-| Account context · `ACC-001` | Growth entitlement 20, enforced concurrency 5, version 17, `us-east-1` | Current mismatch and allowed recovery target |
-| Usage telemetry · `MET-001`, `MET-002` | Baseline 5/5 admitted; later 12 attempted, 5 admitted, 240 of 800 rejected, 18% monthly usage, 90 requests/minute vs 600 allowed | Timing, bottleneck, backlog, and evidence against quota/rate limits |
-| API errors · `ERR-001` | `CONCURRENCY_LIMIT_EXCEEDED`, reported limit 5 | Specific rejection mechanism |
-| Account events · `EVT-001`–`EVT-003` | Growth plan event, failed propagation retaining 5, then customer worker increase | Causal timeline and trigger |
-| Incident lookup | No matching known regional incident | Limited negative evidence; absence does not rule out an unknown incident |
-| Product KB · `KB-003`, `KB-006`, `KB-009` | Distinguishes 429 causes, documents safe concurrency restoration, and requires approval/version/audit/fresh verification | Interpretation, documented remedy, and action controls |
-| Similar resolved tickets · `HIST-007`, `HIST-011` | One analogous propagation recovery and one similarly titled rate-limit case | Corroboration and a deliberate similarity trap; history is not current-account proof |
-
-Expected recommendation: restore 5 → 20, matching Northstar’s existing entitlement, subject to explicit approval; until then, cap workers at the enforced limit. After any change, check configuration and fresh telemetry before declaring recovery. Do not attribute this US API problem to an unrelated EU dashboard incident.
-
-Other incoming tickets exercise a similar-title rate-limit issue (Beacon), insufficient retained evidence (Cedar), and an EU dashboard-ingestion incident (Lumen). All records are fictional. Operational telemetry is frozen at **2026-09-24 10:20 UTC**; account configuration and audit events reflect the current local database state. Replaying a scenario does not manufacture post-change measurements.
-
-## Architecture and tool boundaries
+## Architecture
 
 ```mermaid
-flowchart TD
-    UI[Streamlit support console] --> ORCH[Python orchestrator]
-    ORCH <--> API[OpenAI Responses API]
-    API --> READS[Account-bound read tools]
-    READS --> DB[SQLite accounts and telemetry]
-    API <--> FS[Hosted File Search]
-    FS --> CORPUS[KB articles and historical tickets]
-    ORCH --> RESULT[Structured analysis and observed evidence]
-    RESULT --> UI
-    UI --> HUMAN[Explicit human approval]
-    HUMAN --> ACTION[Concurrency restoration service]
-    ACTION --> DB
-    ORCH --> RUNLOG[Investigation run log]
-    ACTION --> AUDIT[Transactional action audit]
+flowchart LR
+    ENG[Support engineer] --> UI[Streamlit inbox and case review]
+    UI --> AGENT[Python investigation controller]
+    AGENT <--> RESP[OpenAI Responses API]
+
+    RESP -->|Function calls| TOOLS[Allowlisted, account-bound read tools]
+    TOOLS --> OPS[(SQLite: accounts, telemetry, events, incidents)]
+
+    RESP -->|Built-in File Search| FS[OpenAI-hosted vector store]
+    FS --> DOCS[Product KB and historical tickets]
+
+    RESP -->|Structured findings and citations| AGENT
+    OPS --> TOOLS
+    DOCS --> FS
+    AGENT --> UI
+
+    UI -->|Explicit human approval| APPROVAL[Python action service]
+    APPROVAL -->|Validated transaction| OPS
+    APPROVAL --> AUDIT[(SQLite audit record)]
+    AUDIT --> UI
+    UI --> VERIFY[Fresh telemetry required to verify recovery]
 ```
 
-The app uses one Python agent and Streamlit UI; it does not depend on an agent framework or a separate web server. The selected ticket is supplied at run start. Account and operational details are fetched through backend-bound tools, and the model chooses which tools and File Search queries are relevant.
+In this demo, structured operational reads go through Python function tools backed by SQLite. Unstructured KB and ticket-history retrieval uses the Responses API’s File Search tool and hosted vector store. The model proposes; the application enforces the action boundary and the human approves.
 
-| Tool | Scope and constraint |
+## End-to-end workflow
+
+**Ticket → investigate → gather evidence → root cause → recommendation → human approval → action, audit, and verification**
+
+1. The engineer selects a ticket from the filterable inbox. The initial account view shows neutral context rather than revealing the diagnosis.
+2. The Responses API model chooses among the allowed operational functions and File Search, within application-enforced argument and call limits.
+3. The app collects the source records and displays evidence, findings, citations, confidence, and uncertainty.
+4. If supported, the model may request a narrowly defined proposal. The backend checks that the target is the account’s existing entitlement and that the current configuration version matches.
+5. The engineer reviews and explicitly approves or rejects the proposal. Only the app’s approval path can execute the write.
+6. The app records the outcome and before/after configuration in an audit trail. Fresh telemetry is still needed before the engineer can say the customer’s workload recovered.
+
+## Five-minute demo story
+
+1. **Introduce the customer.** Northstar upgraded its plan, increased its sync workers, and now sees 429 errors while its order backlog grows. The ticket alone does not reveal why.
+2. **Start the investigation.** Click **Analyze with AI** and show how the model chooses which operational tools and knowledge sources to consult.
+3. **Connect the evidence.** Walk from the observed error and usage pattern to the account state and timeline. Use the product guidance to interpret the error; treat similar past tickets as context, not current-account evidence.
+4. **State the diagnosis and recommendation.** Explain the configuration mismatch and the proposed restoration to the already-purchased entitlement. Call out any remaining uncertainty.
+5. **Make the human decision.** The model cannot execute the change. The engineer reviews the exact values and explicitly approves.
+6. **Close with verification.** Show the updated configuration and audit event, then point out that fresh telemetry is needed to confirm customer recovery.
+
+The detailed scenario contract, evidence map, secondary cases, and review rubric are in [docs/scenarios.md](docs/scenarios.md). The offline rehearsal is scripted and clearly labeled; do not present it as a live model investigation.
+
+## Expected value and pilot measures
+
+The working hypothesis is that an evidence-gathering agent can reduce time spent assembling context and improve the consistency of support decisions. A pilot should compare representative tickets against a baseline and track:
+
+- Investigation time to first evidence-backed diagnosis and ticket-level time to resolution, segmented by issue type and severity.
+- Tier-2 cases handled per engineer and the rate of avoidable engineering escalations.
+- Customer response time and CSAT, interpreted alongside resolution quality and re-open rates.
+- Diagnosis accuracy, evidence coverage, citation quality, appropriate uncertainty, and unsafe or unsupported recommendation rate.
+- Human approval, rejection, and override rates; stale-action blocks; and post-action verification completion.
+- Median and p95 model latency, tool calls, tokens, and estimated cost per investigation or resolved ticket.
+
+No performance target or percentage improvement is claimed by this demo. A pilot should establish baseline values, define success thresholds in advance, and include human review of semantic grounding and action safety.
+
+## Design and safety boundaries
+
+The implementation uses a least-privilege tool surface and aims to make important controls visible and testable without claiming production readiness.
+
+### Tool scope and orchestration
+
+| Capability | Demo boundary |
 | --- | --- |
-| `get_account_context` | Reads the account bound to the selected ticket; the model cannot provide an account ID |
-| `get_usage_metrics` | Read-only usage; 1–168-hour lookback and at most 50 returned records |
-| `get_api_errors` | Same account/time bounds; error codes, counts, and sample IDs |
-| `get_account_events` | Same account/time bounds; plan and configuration events |
-| `get_incidents` | Scoped to the selected account’s region; an empty result means no known match, not proof no incident exists |
-| File Search | Approved synthetic corpus; at most 5 results per search and 4 searches per investigation |
-| `update_concurrency_limit` | Proposal-only tool during investigation; never executes a write |
+| Account context | Derived from the selected ticket; the model cannot choose an account ID |
+| Usage, API errors, and account events | Read-only, account-bound, time-window constrained, with at most 50 returned records |
+| Incident lookup | Filtered to the selected account’s region; no match means no known matching incident, not proof that none exists |
+| File Search | Synthetic KB and ticket-history corpus; up to 5 results per search and 4 searches per investigation |
+| Action request | Proposal-only **update_concurrency_limit**; the function itself never writes configuration |
+| Overall investigation | At most 12 tool calls; 45-second API request timeout, one SDK retry, and a 180-second elapsed-time check between API calls |
 
-The orchestrator allows at most **12 total tool calls**, counting custom functions and File Search; it also enforces a 45-second per-request timeout, one SDK retry, and a 180-second elapsed-time check between requests. Tools are removed when the call budget is exhausted, and the model must finalize. The demo has no external web-search or arbitrary-SQL tool.
+There is no arbitrary SQL or external web-search tool. Pydantic validates function arguments and the structured final response. The app checks that cited source IDs were actually observed; this checks citation presence, not whether each source semantically supports its claim.
 
-Pydantic validates tool arguments and the final structured analysis. Findings must cite source IDs present in observed evidence. Retrieved tickets and documents are treated as untrusted content, not instructions. The application checks citation existence; semantic entailment still needs human review.
+### Human approval, action, and audit
 
-The action service binds proposals to the selected account, existing purchased entitlement, old value, and observed configuration version. A completed investigation is required. Before execution, the UI asks for explicit operator acknowledgment; the backend rechecks value, version, and entitlement inside a SQLite transaction. Rejected, stale, or repeated proposals cannot apply an extra change. Mutation and the executed audit event commit atomically. The app stores proposed, approved, rejected, blocked, reset, and executed action events. A fresh investigation after a change must use current account context rather than treating frozen telemetry as current configuration.
+A proposal is bound to the selected account, its current value, existing entitlement, and configuration version. The backend rechecks these values in a SQLite transaction. Rejected, stale, repeated, or out-of-scope proposals cannot perform the requested update. Approval, execution, and the before/after state are recorded transactionally.
+
+This is a local single-user demo: the operator identity is fixed, SQLite audit rows are not tamper-proof, and there is no real customer-system integration. A successful configuration write is not proof that the customer recovered; the app explicitly calls for fresh telemetry.
+
+### Grounding, prompt injection, and privacy
+
+Tickets, retrieved documents, and tool outputs are treated as untrusted evidence rather than instructions. The agent is told to use only its provided tools, distinguish current state from historical records, and express uncertainty when evidence is missing. The prompt-injection eval is a useful regression case, not proof that prompt injection is solved.
+
+The included data is synthetic. In a real deployment, customer data sent to the model or stored in retrieval indexes would require documented data handling, minimization, retention, access controls, and security review. Local SQLite records each investigation’s status, observed evidence and tool trace; the trace includes response IDs, returned usage details, and elapsed time where available. The UI can export a run’s evidence, trace, and related audit events as JSON. Model private reasoning is not presented as an audit trail.
 
 ## Evaluation
 
-Run offline regression/UI checks with:
+The repository separates deterministic offline checks from paid live model evaluations.
+
+Run offline tests and the Streamlit UI smoke check:
 
 ```bash
 uv run python -m pytest -q
 uv run python scripts/check_ui.py
 ```
 
-The paid smoke evaluation investigates the four base tickets using isolated SQLite state:
-
-```bash
-uv run python scripts/evaluate_live.py
-```
-
-The 12-case live evaluation suite uses real Responses API and hosted File Search calls:
+The live evaluation suite uses real Responses API and hosted File Search calls. It creates an isolated SQLite database for each case and does not approve proposals or modify the app’s primary database:
 
 ```bash
 uv run python scripts/run_evals.py
-```
-
-Run one or more cases by ID when iterating:
-
-```bash
 uv run python scripts/run_evals.py --case-id clear_northstar_config_mismatch
 uv run python scripts/run_evals.py --case-id prompt_injection_in_customer_ticket --case-id ambiguous_429_missing_error_code
 ```
 
-Each eval case gets a temporary, isolated SQLite database. The suite never approves a proposal or mutates the app’s primary database. Results are saved to:
-
-- [`eval_results/results.json`](eval_results/results.json) · current aggregate and all per-case records
-- [`eval_results/cases/`](eval_results/cases/) · individual JSON case records
-- [`eval_results/report.md`](eval_results/report.md) · human-readable report
-- [`eval_results/runs/`](eval_results/runs/) · timestamped run snapshots, preserving execution failures and rubric misses across iterations
-
-The cases cover clear resolutions, insufficient evidence, misleading historical matches, a hostile instruction embedded in a ticket, source withholding, current-vs-historical configuration, action selection, required tools/sources, citation integrity, uncertainty, and bounded tool calls. The report includes latency, tool calls, input/output/cached/cache-write/reasoning token counts where returned, and estimated API cost. Cost uses GPT-6 Luna and File Search call rates captured in the report; it excludes vector-store storage, indexing/embedding setup, taxes, and any account-level pricing adjustments. See [current OpenAI API pricing](https://developers.openai.com/api/docs/pricing).
-
-**Latest checked-in eval snapshot:** 12 cases completed, 11 passed their deterministic rubrics, 1 rubric miss, 0 execution failures. In `historical_429_decoy`, the agent retrieved `HIST-011` but did not cite that misleading historical ticket in its findings. This is an observed evaluation result, not a claim that all semantic groundedness is automated. Archived reports include earlier infrastructure/harness attempts and intermediate rubric snapshots; the root-level `results.json` and `report.md` are the latest aggregate.
-
-The deterministic scorer checks expected diagnosis terms, confidence/abstention, key source retrieval and citation, required tool selection, action choice, explicit uncertainty, prompt-injection resistance, and tool budgets. It cannot prove that a citation semantically supports a sentence. Review the captured analysis and evidence excerpts before drawing conclusions about model quality. This suite has not been used to tune the agent.
-
-An isolated paid UI test simulates the approval interaction and exercises the 5 → 20 update, audit records, verification, and reset without changing the primary database:
+The paid four-ticket API smoke test and isolated live approval UI test are available separately:
 
 ```bash
+uv run python scripts/evaluate_live.py
 uv run python scripts/check_live_ui.py
 ```
 
-The live UI test and API evaluation make paid API calls. Evals can take several minutes. The per-case results capture latency, token usage, tool calls, and cost estimates; no failure is silently replaced by Offline rehearsal.
+The 12-case catalog covers clear diagnoses, insufficient evidence, misleading historical matches, prompt injection, source withholding, current-versus-historical configuration, tool choice, citation integrity, uncertainty, and call budgets. The deterministic rubrics check expected diagnosis terms, confidence or abstention, source retrieval and citation, tool selection, action choice, uncertainty, injection resistance, and tool limits. They do **not** prove that a citation semantically entails a finding; review the captured excerpts and analysis.
 
-## Validation history
+### Checked-in live result
 
-The project’s [`docs/live-validation.md`](docs/live-validation.md) records prior live validation with GPT-6 Luna, indexing of all 23 knowledge documents, all four original ticket scenarios, post-change re-investigation, and an isolated live UI approval walkthrough. That historical report records 15 passing offline tests. These are demo checks, not performance guarantees or a production certification. The latest evaluation snapshot is linked above.
+The current checked-in report was generated **September 28, 2026**. It records **12 completed cases, 11 rubric passes, 1 rubric miss, and 0 execution failures**. Mean latency was **12.229 seconds**, p95 **18.839 seconds**, with **74 tool calls**, **269,249 tokens**, and **$0.040243 estimated API cost** for that run.
 
-## Production considerations
+The rubric miss was **historical_429_decoy**: the agent retrieved a misleading historical rate-limit ticket but did not cite it in its findings. This is one small snapshot, not a general accuracy or production-readiness claim. Evals have not been used to tune the agent. Results include per-case detail, cost assumptions, and earlier run snapshots:
 
-This demo intentionally prioritizes a clear, reviewable five-minute walkthrough. Before use with real customers or deployment beyond localhost, address at least the following:
+- [Human-readable current report](eval_results/report.md)
+- [Machine-readable aggregate and per-case results](eval_results/results.json)
+- [Eval case definitions](evals/cases.json)
+- [Timestamped run history](eval_results/runs/)
 
-- **Identity and authorization:** Replace the fixed local demo operator with SSO/RBAC, server-side account authorization, and independently verified approver identity. The demo operator constant is not a security boundary for a remote deployment.
-- **Persistence and audit:** Replace single-user SQLite with a migration-managed transactional service, durable backups and audit storage, worker-safe execution, and tamper-evident controls. Current audit rows are append-only by application convention, not tamper-proof.
-- **Approval lifecycle:** Add proposal expiration, durable/idempotent execution jobs, ownership, policy versioning, external-service reconciliation, and a separately approved rollback path.
-- **Evidence governance:** Add server-enforced document ACLs, redaction, corpus versioning, relevance evaluation, and semantic citation checks. Historical tickets in this demo are shared fictional data.
-- **Prompt injection:** Narrow tool permissions and untrusted-content instructions reduce risk; they do not eliminate prompt injection. Add adversarial tests, downstream output handling, and stronger policy enforcement outside the model.
-- **Telemetry:** Integrate real monitoring, freshness/retention controls, and outcome checks. Empty data is not a healthy signal. A configuration write is not proof of customer recovery.
-- **Reliability and operations:** Add cancellable runs, streaming, global deadlines, rate-limit/backoff handling, indexing recovery and remote-resource cleanup, cost controls, monitoring, and durable background work. The current flow is synchronous and reports progress at tool boundaries.
-- **Evaluation:** Expand scenarios and repeated runs; measure wrong-action rate, groundedness, abstention, source selection, latency, and cost. Separate deterministic rubric checks from human semantic review.
+Live evaluation makes paid API calls. Reported cost is an estimate from the price assumptions stored with the run; it excludes vector-store storage and indexing/embedding setup. See [OpenAI API pricing](https://developers.openai.com/api/docs/pricing).
 
-## Project layout
+## Path to production
+
+Before handling real customer tickets, the design would need:
+
+- **Real integrations:** Support system, account/configuration service, telemetry and incident sources, with tested identity and data contracts.
+- **Identity and access:** SSO, RBAC, server-side account authorization, verified approver identity, and document-level retrieval ACLs.
+- **Durable actions:** Production persistence, migrations, durable approval lifecycle, idempotent writes, expiration, reconciliation, and separately governed rollback.
+- **Security and privacy:** PII minimization/redaction, retention and deletion policies, secrets management, threat modeling, audit protection, and adversarial testing.
+- **Reliability and operations:** Monitoring, alerting, cancellation, global deadlines, rate-limit handling, retry strategy, index lifecycle, cost controls, and service-level expectations.
+- **Expanded evaluation:** More representative and adversarial cases, repeated runs, semantic citation review, human outcome review, and monitoring for regressions after model or prompt changes.
+
+The live validation history and its limits are documented in [docs/live-validation.md](docs/live-validation.md).
+
+## Quick start
+
+### Requirements
+
+- Python 3.11 or newer (CI uses Python 3.12).
+- [uv](https://docs.astral.sh/uv/) for locked dependency installation.
+- An OpenAI API key and access to the configured model for Live AI. Offline rehearsal does not require a key.
+
+### Install and run
+
+From the repository root:
+
+```bash
+uv sync --locked
+cp .env.example .env
+```
+
+Set **OPENAI_API_KEY** in the ignored **.env** file, then start Streamlit:
+
+```bash
+uv run streamlit run app.py
+```
+
+Open <http://localhost:8501>, select a ticket, and click **Analyze with AI**. For Live AI, prepare the File Search index from **Demo settings → Prepare File Search** or run:
+
+```bash
+uv run python scripts/index_knowledge.py
+```
+
+Indexing uploads only the 9 synthetic KB articles and 14 historical tickets. It does not upload operational telemetry, account records, prompt logs, or secrets. The local **data/local/index.json** manifest tracks the vector-store ID, corpus fingerprint, and readiness. An unchanged completed index is reused. OpenAI vector stores expire after seven inactive days, so setup may need to be repeated. API and storage usage may incur charges.
+
+Offline rehearsal is a scripted Northstar walkthrough, not model output, a cached answer, or a fallback for Live AI failures. The mode is labeled in the UI. The secondary tickets require Live AI.
+
+### Configuration
+
+| Variable | Purpose | Default / notes |
+| --- | --- | --- |
+| **OPENAI_API_KEY** | Responses API and File Search authentication | Empty in .env.example; keep the value in ignored .env or a secret manager |
+| **OPENAI_MODEL** | Model used by Responses API | **gpt-6-luna** in current config; model is a configuration detail, not the product premise |
+| **OPENAI_VECTOR_STORE_ID** | Optional existing File Search store override | Blank by default; otherwise the local index manifest is used |
+| **ACME_DB_PATH** | SQLite path | **data/local/acme.db** |
+
+The agent currently uses low reasoning effort and an 8,192-token output limit. Never commit .env, credentials, or **logs/prompts.md**. The prompt log is intentionally excluded by .gitignore; publish only the safe .env.example template.
+
+## Project structure
 
 ```text
-app.py                          Streamlit support console
-src/acme_support/               Agent, schemas, tools, SQLite, indexing, approvals
-scripts/                        Seed, indexing, UI verification, live and eval runners
+app.py                          Streamlit inbox and support case UI
+src/acme_support/               Responses API agent, tools, schemas, SQLite, actions
+scripts/                        Indexing, seeding, UI checks, and evaluation runners
 tests/                          Offline regression and orchestration tests
-evals/cases.json                Versioned 12-case live eval catalog
-eval_results/                   Current case/aggregate results and archived run snapshots
-data/synthetic/                 Fictional customers, tickets, telemetry and KB corpus
-data/local/                     Ignored runtime DB, index manifest and local reports
-docs/scenarios.md               Primary evidence contract and scenario rubric
-docs/live-validation.md         Prior live API/UI validation record
+evals/cases.json                Versioned 12-case live evaluation catalog
+eval_results/                   Current results and archived run snapshots
+data/synthetic/                 Fictional accounts, tickets, telemetry, and KB corpus
+data/local/                     Ignored runtime database and index manifest
+docs/scenarios.md               Scenario contract and evaluation rubric
+docs/live-validation.md         Prior live API and UI validation notes
 .github/workflows/ci.yml        Offline GitHub Actions checks
-.github/pull_request_template.md Pull request checklist template
-.env.example                    Safe configuration template; no credentials
-pyproject.toml / uv.lock        Dependency declarations and lockfile
-logs/prompts.md                 Local verbatim prompt history; Git-ignored, not for public upload
+pyproject.toml / uv.lock        Dependencies and lockfile
+.env.example                    Safe configuration template
 ```
 
 ## Troubleshooting
 
 | Symptom | Check |
 | --- | --- |
-| Live analysis says no API key is configured | Put a valid `OPENAI_API_KEY` in local `.env`, then restart Streamlit. Never commit the file. |
-| File Search is unavailable | Prepare the index from **Demo settings** or run `uv run python scripts/index_knowledge.py`; verify that the configured vector store belongs to this corpus. |
-| API/network or quota error | Check the key’s project access, model availability, billing/limits, and network connection. The app does not silently switch to a scripted answer. |
-| Analysis reports missing/stale evidence | Read the uncertainty and evidence panels. Historical telemetry is frozen; rerun with a fresh diagnostic reproduction rather than treating missing records as proof of no issue. |
-| Need to replay Northstar | Use **Demo settings → Reset Northstar scenario**. The reset restores the demo account state and retains audit history. |
+| Live AI says no API key is configured | Set a valid OPENAI_API_KEY in local .env, then restart Streamlit. Never commit the file. |
+| File Search is unavailable | Prepare the index from Demo settings or run **uv run python scripts/index_knowledge.py**; confirm the vector store is for this synthetic corpus and has not expired. |
+| API, network, or quota error | Check key/project access, model access, billing limits, and network. The app does not silently switch to scripted output. |
+| The finding reports missing evidence | Review the uncertainty panel and gather a fresh request ID, timestamp, or diagnostic sample. Missing records do not establish that no issue occurred. |
+| Need to replay Northstar | Use **Demo settings → Reset Northstar scenario**. It resets the demo account while retaining audit history. |
 
-## References
+## OpenAI Platform references
 
-- [Responses API function calling](https://developers.openai.com/api/docs/guides/function-calling)
-- [OpenAI File Search](https://developers.openai.com/api/docs/guides/tools-file-search)
-- [OpenAI API pricing](https://developers.openai.com/api/docs/pricing)
+- [Responses API](https://developers.openai.com/api/docs/guides/text)
+- [Function calling](https://developers.openai.com/api/docs/guides/function-calling)
+- [File Search](https://developers.openai.com/api/docs/guides/tools-file-search)
+- [API pricing](https://developers.openai.com/api/docs/pricing)
