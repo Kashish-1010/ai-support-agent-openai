@@ -1,11 +1,11 @@
-# Acme Support Agent
+# Acme Technical Support Investigation Agent
 
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB)
 ![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B)
 ![Storage](https://img.shields.io/badge/storage-SQLite-003B57)
 ![Evaluation](https://img.shields.io/badge/eval-12%20live%20cases-f1c40f)
 
-A support-agent take-home demo for a fictional cloud software company, Acme Corp. It explores how an internal support engineer could investigate a customer issue across operational signals and product knowledge, then review a grounded recommendation before approving a consequential change.
+The Acme Technical Support Investigation Agent is a take-home demo for Acme Cloud, a fictional cloud software provider. It explores how an internal support engineer could investigate a customer issue across operational signals and product knowledge, then review a grounded recommendation before approving a consequential change.
 
 > **From ticket to resolution.** The agent investigates; the support engineer remains accountable for the action.
 
@@ -13,7 +13,7 @@ All customers, tickets, telemetry, incidents, and knowledge documents are synthe
 
 ## The customer problem
 
-Acme Corp’s customers use **Acme Sync API v2** to process business data. When a customer reports failed syncs, a growing backlog, or HTTP 429 errors, a support engineer may need to reconcile the ticket with account configuration, API telemetry, incident status, product guidance, and similar past cases. A similar-looking ticket can point to the wrong fix, and a configuration change can have consequences.
+Acme Cloud’s customers use **Acme Sync API v2** to process business data. When a customer reports failed syncs, a growing backlog, or HTTP 429 errors, a support engineer may need to reconcile the ticket with account configuration, API telemetry, incident status, product guidance, and similar past cases. A similar-looking ticket can point to the wrong fix, and a configuration change can have consequences.
 
 The demo centers on **Northstar Commerce**. After upgrading its plan and increasing its workers, Northstar reports 429 responses and a growing order backlog. The engineer needs to determine whether the issue is an incident, request pacing, exhausted quota, or a configuration mismatch—and establish what the evidence supports before recommending an action.
 
